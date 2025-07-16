@@ -68,49 +68,30 @@
         <div id="status-message" class="hidden"></div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const registerForm = document.getElementById('register-form');
+        document.getElementById('register-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
             const statusMessage = document.getElementById('status-message');
-            // IMPORTANTE: Use a URL da sua API no Render
-            const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com'; 
-
-            // A função do event listener agora é async
-            registerForm.addEventListener('submit', async (event) => {
-                event.preventDefault();
-
-                const nome = document.getElementById('nome').value;
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-
-                statusMessage.className = 'hidden';
-                statusMessage.textContent = '';
-
-                try {
-                    const response = await fetch(`${apiBaseUrl}/api/register`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ nome, email, password }),
-                    });
-
-                    const result = await response.json();
-
-                    statusMessage.classList.remove('hidden');
-                    if (response.ok && result.success) {
-                        statusMessage.textContent = "Registro bem-sucedido! Redirecionando para o login...";
-                        statusMessage.className = 'status-success';
-                        setTimeout(() => {
-                            window.location.href = '/login.html';
-                        }, 2000);
-                    } else {
-                        statusMessage.textContent = `Erro: ${result.message}`;
-                        statusMessage.className = 'status-error';
-                    }
-                } catch (error) {
-                    statusMessage.textContent = 'Erro de conexão com o servidor.';
+            const nome = document.getElementById('nome').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, email, password }),
+                });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    alert('Registro bem-sucedido! Você será redirecionado para a página de login.');
+                    window.location.href = '/login';
+                } else {
+                    statusMessage.textContent = `Erro: ${result.message}`;
                     statusMessage.className = 'status-error';
-                    statusMessage.classList.remove('hidden');
                 }
-            });
+            } catch (error) {
+                statusMessage.textContent = 'Erro de conexão com o servidor.';
+                statusMessage.className = 'status-error';
+            }
         });
     </script>
 </body>
