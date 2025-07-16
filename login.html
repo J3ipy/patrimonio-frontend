@@ -62,17 +62,20 @@
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
+                    credentials: 'include' // Envia os cookies de sessão
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
-                    window.location.href = '/';
+                    window.location.href = '/'; // Redireciona para a página principal
                 } else {
                     statusMessage.textContent = `Erro: ${result.message}`;
                     statusMessage.className = 'status-error';
+                    statusMessage.classList.remove('hidden');
                 }
             } catch (error) {
                 statusMessage.textContent = 'Erro de conexão com o servidor.';
                 statusMessage.className = 'status-error';
+                statusMessage.classList.remove('hidden');
             }
         });
     </script>

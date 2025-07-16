@@ -247,7 +247,8 @@
                         fetch(`${apiBaseUrl}/api/patrimonio/deletar`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ row_num: rowNum })
+                            body: JSON.stringify({ row_num: rowNum }),
+                            credentials: 'include'
                         })
                         .then(res => res.json())
                         .then(data => {
@@ -270,7 +271,7 @@
                 event.preventDefault();
                 const formData = new FormData(document.getElementById('edit-form'));
                 
-                fetch(`${apiBaseUrl}/api/patrimonio/editar`, { method: 'POST', body: formData })
+                fetch(`${apiBaseUrl}/api/patrimonio/editar`, { method: 'POST', body: formData, credentials: 'include' })
                 .then(res => res.json())
                 .then(data => {
                     alert(data.message);
