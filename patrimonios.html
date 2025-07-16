@@ -4,21 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Patrimônios</title>
-
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#212529">
     <link rel="apple-touch-icon" href="/static/icons/logo.png">
-
     <style>
         :root {
-            --primary-color: #0d6efd;
-            --success-color: #198754;
-            --error-color: #dc3545;
-            --warning-color: #ffc107;
-            --info-color: #0dcaf0;
-            --light-gray: #f8f9fa;
-            --dark-gray: #212529;
-            --border-radius: 8px;
+            --primary-color: #0d6efd; --success-color: #198754; --error-color: #dc3545;
+            --warning-color: #ffc107; --info-color: #0dcaf0; --light-gray: #f8f9fa;
+            --dark-gray: #212529; --border-radius: 8px;
         }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #eef2f7; color: var(--dark-gray); }
         .header { background-color: var(--dark-gray); color: white; padding: 15px 20px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -46,26 +39,13 @@
         .modal-content { background-color: #fefefe; margin: 10% auto; padding: 30px; border: 1px solid #888; width: 90%; max-width: 500px; border-radius: var(--border-radius); position: relative; animation: slide-down 0.3s ease-out; }
         @keyframes slide-down { from { transform: translateY(-50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .close-btn { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
-
         @media only screen and (max-width: 768px) {
             .table-container { overflow-x: hidden; }
             thead { display: none; }
-            tr {
-                display: block; margin-bottom: 20px;
-                border-radius: var(--border-radius);
-                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                border: 1px solid #ddd;
-            }
-            td {
-                display: flex; justify-content: space-between; align-items: center;
-                text-align: right; border-bottom: 1px solid #eee;
-                white-space: normal;
-            }
+            tr { display: block; margin-bottom: 20px; border-radius: var(--border-radius); box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+            td { display: flex; justify-content: space-between; align-items: center; text-align: right; border-bottom: 1px solid #eee; white-space: normal; }
             td:last-child { border-bottom: none; }
-            td::before {
-                content: attr(data-label); font-weight: 600;
-                text-align: left; margin-right: 15px; color: var(--dark-gray);
-            }
+            td::before { content: attr(data-label); font-weight: 600; text-align: left; margin-right: 15px; color: var(--dark-gray); }
             .action-buttons { justify-content: flex-end; }
         }
     </style>
@@ -96,34 +76,13 @@
         <div class="card table-container">
             <table id="patrimonio-table">
                 <thead><tr><th>ID</th><th>Nome</th><th>Categoria</th><th>Local</th><th>Foto</th><th>Ações</th></tr></thead>
-                <tbody>
-                    {% if patrimonios %}
-                        {% for item in patrimonios %}
-                        <tr data-row-num="{{ item.row_num }}">
-                            <td data-label="ID">{{ item.ID_PATRIMONIO }}</td>
-                            <td data-label="Nome">{{ item.NOME_PATRIMONIO }}</td>
-                            <td data-label="Categoria">{{ item.CATEGORIA }}</td>
-                            <td data-label="Local">{{ item.LOCAL }}</td>
-                            <td data-label="Foto">
-                                {% if item.URL_FOTO %}<a href="{{ item.URL_FOTO }}" target="_blank"><img src="{{ item.URL_FOTO }}" alt="Foto de {{ item.NOME_PATRIMONIO }}"></a>{% else %}<span>N/A</span>{% endif %}
-                            </td>
-                            <td data-label="Ações" class="action-buttons">
-                                <button class="edit-btn">Editar</button>
-                                <button class="delete-btn">Excluir</button>
-                                <a class="tag-btn" href="/gerar_etiqueta?id={{ item.ID_PATRIMONIO }}&nome={{ item.NOME_PATRIMONIO }}" target="_blank">Etiqueta</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr><td colspan="6" style="text-align: center; padding: 50px;">Nenhum patrimônio cadastrado ainda.</td></tr>
-                    {% endif %}
+                <tbody id="patrimonio-tbody">
+                    <tr><td colspan="6" style="text-align: center; padding: 50px;">Carregando patrimônios...</td></tr>
                 </tbody>
             </table>
         </div>
         
-        <div class="action-container">
-            <a href="/" class="action-button">Cadastrar Novo Patrimônio</a>
-        </div>
+        <div class="action-container"><a href="/" class="action-button">Cadastrar Novo Patrimônio</a></div>
     </div>
 
     <div id="edit-modal" class="modal">
@@ -144,10 +103,7 @@
                     </select>
                 </div>
                 <div class="form-group"><label for="edit-local">Local</label><input type="text" id="edit-local" required></div>
-                <div class="form-group">
-                    <label for="edit-foto">Trocar Foto (opcional)</label>
-                    <input type="file" id="edit-foto" accept="image/jpeg, image/png">
-                </div>
+                <div class="form-group"><label for="edit-foto">Trocar Foto (opcional)</label><input type="file" id="edit-foto" accept="image/jpeg, image/png"></div>
                 <button type="submit" class="action-button">Salvar Alterações</button>
             </form>
         </div>
@@ -155,16 +111,62 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            const tableBody = document.getElementById('patrimonio-tbody');
+            // A URL base da sua API. Troque se for diferente.
+            const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
+
+            function renderTable(items) {
+                tableBody.innerHTML = '';
+                if (!items || items.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 50px;">Nenhum patrimônio cadastrado.</td></tr>';
+                    return;
+                }
+                items.forEach(item => {
+                    const fotoHtml = item.URL_FOTO ? `<a href="${item.URL_FOTO}" target="_blank"><img src="${item.URL_FOTO}" alt="Foto de ${item.NOME_PATRIMONIO}"></a>` : '<span>N/A</span>';
+                    const row = document.createElement('tr');
+                    row.setAttribute('data-row-num', item.row_num);
+                    row.innerHTML = `
+                        <td data-label="ID">${item.ID_PATRIMONIO}</td>
+                        <td data-label="Nome">${item.NOME_PATRIMONIO}</td>
+                        <td data-label="Categoria">${item.CATEGORIA || 'N/A'}</td>
+                        <td data-label="Local">${item.LOCAL}</td>
+                        <td data-label="Foto">${fotoHtml}</td>
+                        <td data-label="Ações" class="action-buttons">
+                            <button class="edit-btn">Editar</button>
+                            <button class="delete-btn">Excluir</button>
+                            <a class="tag-btn" href="${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(item.ID_PATRIMONIO)}&nome=${encodeURIComponent(item.NOME_PATRIMONIO)}" target="_blank">Etiqueta</a>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            async function carregarPatrimonios() {
+                try {
+                    const response = await fetch(`${apiBaseUrl}/api/patrimonios`);
+                    if (!response.ok) throw new Error(`Erro: ${response.status} ${response.statusText}`);
+                    const data = await response.json();
+                    renderTable(data);
+                } catch (error) {
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 50px; color: #dc3545;">Falha ao carregar dados. Verifique a conexão com a API.</td></tr>`;
+                    console.error("Erro ao buscar patrimônios:", error);
+                }
+            }
+
+            carregarPatrimonios();
+
             const searchInput = document.getElementById('search-input');
             const categoryFilter = document.getElementById('category-filter');
-            const tableBody = document.getElementById('patrimonio-table').getElementsByTagName('tbody')[0];
-            
+            const modal = document.getElementById('edit-modal');
+            const closeBtn = document.querySelector('.close-btn');
+            const editForm = document.getElementById('edit-form');
+
             function filterTable() {
                 const searchText = searchInput.value.toLowerCase();
                 const categoryValue = categoryFilter.value;
                 const rows = tableBody.getElementsByTagName('tr');
                 for (const row of rows) {
-                    if (!row.cells[1]) continue; // Pula se a linha não tiver células (ex: linha de "nenhum item")
+                    if (!row.cells[1]) continue;
                     const nome = row.cells[1].textContent.toLowerCase();
                     const categoria = row.cells[2].textContent;
                     const matchesSearch = nome.includes(searchText);
@@ -175,10 +177,6 @@
 
             searchInput.addEventListener('keyup', filterTable);
             categoryFilter.addEventListener('change', filterTable);
-
-            const modal = document.getElementById('edit-modal');
-            const closeBtn = document.querySelector('.close-btn');
-            const editForm = document.getElementById('edit-form');
             
             closeBtn.onclick = () => { modal.style.display = "none"; };
             window.onclick = (event) => { if (event.target == modal) modal.style.display = "none"; };
@@ -192,7 +190,7 @@
                     const nome = row.cells[1].textContent;
                     const rowNum = row.getAttribute('data-row-num');
                     if (confirm(`Tem certeza que deseja excluir o item "${nome}"?`)) {
-                        fetch('/api/patrimonio/deletar', {
+                        fetch(`${apiBaseUrl}/api/patrimonio/deletar`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ row_num: rowNum })
@@ -216,18 +214,9 @@
 
             editForm.addEventListener('submit', (event) => {
                 event.preventDefault();
-                const formData = new FormData();
-                formData.append('row_num', document.getElementById('edit-row-num').value);
-                formData.append('nome', document.getElementById('edit-nome').value);
-                formData.append('categoria', document.getElementById('edit-categoria').value);
-                formData.append('local', document.getElementById('edit-local').value);
+                const formData = new FormData(document.getElementById('edit-form'));
                 
-                const fotoInput = document.getElementById('edit-foto');
-                if (fotoInput.files.length > 0) {
-                    formData.append('foto', fotoInput.files[0]);
-                }
-
-                fetch('/api/patrimonio/editar', { method: 'POST', body: formData })
+                fetch(`${apiBaseUrl}/api/patrimonio/editar`, { method: 'POST', body: formData })
                 .then(res => res.json())
                 .then(data => {
                     alert(data.message);
@@ -242,11 +231,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/service-worker.js').then(registration => {
-            console.log('ServiceWorker registrado com sucesso: ', registration.scope);
-          }).catch(error => {
-            console.log('Falha ao registrar o ServiceWorker: ', error);
-          });
+          navigator.serviceWorker.register('/service-worker.js');
         });
       }
     </script>
