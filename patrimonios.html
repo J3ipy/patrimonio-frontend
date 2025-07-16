@@ -116,49 +116,69 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const tableBody = document.getElementById('patrimonio-tbody');
-            // A URL base da sua API. Troque se for diferente.
-            const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
+        const tableBody = document.getElementById('patrimonio-tbody');
+        const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
 
-            function renderTable(items) {
-                tableBody.innerHTML = '';
-                if (!items || items.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 50px;">Nenhum patrimônio cadastrado.</td></tr>';
-                    return;
-                }
-                items.forEach(item => {
-                    const fotoHtml = item.URL_FOTO ? `<a href="${item.URL_FOTO}" target="_blank"><img src="${item.URL_FOTO}" alt="Foto de ${item.NOME_PATRIMONIO}"></a>` : '<span>N/A</span>';
-                    const row = document.createElement('tr');
-                    row.setAttribute('data-row-num', item.row_num);
-                    row.innerHTML = `
-                        <td data-label="ID">${item.ID_PATRIMONIO}</td>
-                        <td data-label="Nome">${item.NOME_PATRIMONIO}</td>
-                        <td data-label="Categoria">${item.CATEGORIA || 'N/A'}</td>
-                        <td data-label="Local">${item.LOCAL}</td>
-                        <td data-label="Foto">${fotoHtml}</td>
-                        <td data-label="Ações" class="action-buttons">
-                            <button class="edit-btn">Editar</button>
-                            <button class="delete-btn">Excluir</button>
-                            <a class="tag-btn" href="${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(item.ID_PATRIMONIO)}&nome=${encodeURIComponent(item.NOME_PATRIMONIO)}" target="_blank">Etiqueta</a>
-                        </td>
-                    `;
-                    tableBody.appendChild(row);
-                });
+        // Função para construir as linhas da tabela a partir dos dados JSON
+        function renderTable(items) {
+            tableBody.innerHTML = ''; // Limpa a mensagem "Carregando..."
+            if (!items || items.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 50px;">Nenhum patrimônio cadastrado.</td></tr>';
+                return;
             }
+            
+            items.forEach(item => {
+                const fotoHtml = item.URL_FOTO
+                    ? `<a href="${item.URL_FOTO}" target="_blank"><img src="${item.URL_FOTO}" alt="Foto de ${item.NOME_PATRIMONIO || ''}"></a>`
+                    : '<span>N/A</span>';
 
-            async function carregarPatrimonios() {
-                try {
-                    const response = await fetch(`${apiBaseUrl}/api/patrimonios`);
-                    if (!response.ok) throw new Error(`Erro: ${response.status} ${response.statusText}`);
-                    const data = await response.json();
-                    renderTable(data);
-                } catch (error) {
-                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 50px; color: #dc3545;">Falha ao carregar dados. Verifique a conexão com a API.</td></tr>`;
-                    console.error("Erro ao buscar patrimônios:", error);
+                const row = document.createElement('tr');
+                row.setAttribute('data-row-num', item.row_num);
+                row.innerHTML = `
+                    <td data-label="ID">${item.ID_PATRIMONIO || 'N/A'}</td>
+                    <td data-label="Nome">${item.NOME_PATRIMONIO || 'N/A'}</td>
+                    <td data-label="Categoria">${item.CATEGORIA || 'N/A'}</td>
+                    <td data-label="Local">${item.LOCAL || 'N/A'}</td>
+                    <td data-label="Foto">${fotoHtml}</td>
+                    <td data-label="Ações" class="action-buttons">
+                        <button class="edit-btn">Editar</button>
+                        <button class="delete-btn">Excluir</button>
+                        <a class="tag-btn" href="${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(item.ID_PATRIMONIO)}&nome=${encodeURIComponent(item.NOME_PATRIMONIO)}" target="_blank">Etiqueta</a>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Função principal que busca os dados na API
+        async function carregarPatrimonios() {
+            console.log("Iniciando busca de patrimônios na API...");
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/patrimonios`);
+                console.log("Resposta da API recebida:", response);
+
+                if (!response.ok) {
+                    throw new Error(`Erro de rede: ${response.status} - ${response.statusText}`);
                 }
-            }
 
-            carregarPatrimonios();
+                // Tenta ler a resposta como texto primeiro para depuração
+                const textData = await response.text();
+                console.log("Dados recebidos como texto:", textData);
+                
+                // Agora, tenta converter o texto para JSON
+                const jsonData = JSON.parse(textData);
+                console.log("Dados convertidos para JSON:", jsonData);
+
+                renderTable(jsonData);
+
+            } catch (error) {
+                console.error("Erro detalhado ao buscar patrimônios:", error);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 50px; color: #dc3545;">Falha ao carregar dados. Verifique o console (F12) para mais detalhes.</td></tr>`;
+            }
+        }
+
+        // Inicia o carregamento dos dados
+        carregarPatrimonios();
 
             const searchInput = document.getElementById('search-input');
             const categoryFilter = document.getElementById('category-filter');
