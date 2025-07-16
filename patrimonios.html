@@ -181,29 +181,24 @@
 
         // Função principal que busca os dados na API
         async function carregarPatrimonios() {
-            console.log("Iniciando busca de patrimônios na API...");
-            try {
-                const response = await fetch(`${apiBaseUrl}/api/patrimonios`);
-                console.log("Resposta da API recebida:", response);
-
-                if (!response.ok) {
-                    throw new Error(`Erro de rede: ${response.status} - ${response.statusText}`);
+                try {
+                    const response = await fetch(`${apiBaseUrl}/api/patrimonios`, {
+                        credentials: 'include' // Envia os cookies de sessão
+                    });
+                    if (!response.ok) {
+                        // Se não estiver autorizado, redireciona para o login
+                        if (response.status === 401) {
+                            window.location.href = '/login.html';
+                            return;
+                        }
+                        throw new Error(`Falha ao buscar dados: ${response.statusText}`);
+                    }
+                    const data = await response.json();
+                    renderTable(data);
+                } catch (error) {
+                    console.error("Erro detalhado ao buscar patrimônios:", error);
+                    tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 50px; color: #dc3545;">Falha ao carregar dados. Faça o login novamente.</td></tr>`;
                 }
-
-                // Tenta ler a resposta como texto primeiro para depuração
-                const textData = await response.text();
-                console.log("Dados recebidos como texto:", textData);
-                
-                // Agora, tenta converter o texto para JSON
-                const jsonData = JSON.parse(textData);
-                console.log("Dados convertidos para JSON:", jsonData);
-
-                renderTable(jsonData);
-
-            } catch (error) {
-                console.error("Erro detalhado ao buscar patrimônios:", error);
-                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 50px; color: #dc3545;">Falha ao carregar dados. Verifique o console (F12) para mais detalhes.</td></tr>`;
-            }
         }
 
         // Inicia o carregamento dos dados
