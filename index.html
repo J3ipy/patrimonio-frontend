@@ -182,7 +182,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => { 
+            const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com'; 
+
+            try {
+                // O `credentials: 'include'` é crucial para enviar os cookies de sessão para a API
+                const response = await fetch(`${apiBaseUrl}/api/user/status`, {credentials: 'include'});
+        
+                if (!response.ok) {
+                    // Se a resposta não for OK (ex: 401 Unauthorized), redireciona para o login
+                    window.location.href = '/login.html';
+                    return; // Para a execução do script
+                }
+
+                const data = await response.json();
+
+                if (!data.isLoggedIn) {
+                    window.location.href = '/login.html';
+                } else {
+                    // O usuário está logado, a página pode continuar carregando
+                    console.log(`Bem-vindo, ${data.user.nome}!`);
+                    // Chame aqui a função que carrega o conteúdo principal da página
+                    // Ex: no index.html, você pode chamar a função que inicia o scanner
+                    // Ex: no patrimonios.html, você pode chamar carregarPatrimonios();
+                }
+            } catch (error) {
+                console.error("Erro ao verificar status de autenticação:", error);
+                // Em caso de erro de rede, redireciona para o login por segurança
+                window.location.href = '/login.html';
+            }
+
             
             // --- LÓGICA DO NOVO GERADOR DE QR CODE ---
             const generateBtn = document.getElementById('generate-btn');

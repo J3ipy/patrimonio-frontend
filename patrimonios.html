@@ -7,6 +7,7 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#212529">
     <link rel="apple-touch-icon" href="/static/icons/logo.png">
+    <link rel="shortcut icon" href="/static/icons/logo.png" type="image/png">
     <style>
         :root {
             --primary-color: #0d6efd; --success-color: #198754; --error-color: #dc3545;
@@ -115,9 +116,37 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-        const tableBody = document.getElementById('patrimonio-tbody');
-        const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
+        document.addEventListener('DOMContentLoaded', async () => { 
+
+            const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com'; 
+            const tableBody = document.getElementById('patrimonio-tbody');
+
+            try {
+                // O `credentials: 'include'` é crucial para enviar os cookies de sessão para a API
+                const response = await fetch(`${apiBaseUrl}/api/user/status`, {credentials: 'include'});
+        
+                if (!response.ok) {
+                    // Se a resposta não for OK (ex: 401 Unauthorized), redireciona para o login
+                    window.location.href = '/login.html';
+                    return; // Para a execução do script
+                }
+
+                const data = await response.json();
+
+                if (!data.isLoggedIn) {
+                    window.location.href = '/login.html';
+                } else {
+                    // O usuário está logado, a página pode continuar carregando
+                    console.log(`Bem-vindo, ${data.user.nome}!`);
+                    // Chame aqui a função que carrega o conteúdo principal da página
+                    // Ex: no index.html, você pode chamar a função que inicia o scanner
+                    // Ex: no patrimonios.html, você pode chamar carregarPatrimonios();
+                }
+            } catch (error) {
+                console.error("Erro ao verificar status de autenticação:", error);
+                // Em caso de erro de rede, redireciona para o login por segurança
+                window.location.href = '/login.html';
+            }
 
         // Função para construir as linhas da tabela a partir dos dados JSON
         function renderTable(items) {
