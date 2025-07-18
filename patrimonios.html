@@ -449,15 +449,35 @@
             const closeBtn = document.querySelector('.close-btn');
             const editForm = document.getElementById('edit-form');
 
+             async function abrirEtiqueta(id, nome) {
+                const url = `${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(id)}&nome=${encodeURIComponent(nome)}`;
+                try {
+                    const res = await fetch(url, { credentials: 'include' });
+                    if (!res.ok) {
+                        alert('Você precisa estar logado para ver a etiqueta.');
+                        return;
+                    }
+                    const html = await res.text();
+                    const win = window.open();
+                    win.document.open();
+                    win.document.write(html);
+                    win.document.close();
+                } catch (err) {
+                    console.error('Erro ao buscar etiqueta:', err);
+                    alert('Falha ao gerar etiqueta. Tente novamente.');
+                }
+            }
+
             function renderTable(items) {
                 tableBody.innerHTML = '';
                 if (!items || items.length === 0) {
-                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 50px;">Nenhum patrimônio cadastrado.</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:50px;">Nenhum patrimônio cadastrado.</td></tr>';
                     return;
                 }
                 items.forEach(item => {
-                    const fotoHtml = item.URL_FOTO ? `<a href="${item.URL_FOTO}" target="_blank"><img src="${item.URL_FOTO}" alt="Foto de ${item.NOME_PATRIMONIO || ''}"></a>` : '<span>N/A</span>';
-                    const etiquetaUrl = `${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(item.ID_PATRIMONIO)}&nome=${encodeURIComponent(item.NOME_PATRIMONIO)}`;
+                    const fotoHtml = item.URL_FOTO
+                        ? `<a href="${item.URL_FOTO}" target="_blank"><img src="${item.URL_FOTO}" alt="Foto de ${item.NOME_PATRIMONIO || ''}"></a>`
+                        : '<span>N/A</span>';
                     const row = document.createElement('tr');
                     row.setAttribute('data-row-num', item.row_num);
                     row.innerHTML = `
@@ -470,7 +490,7 @@
                             <div class="action-buttons">
                                 <button class="edit-btn">Editar</button>
                                 <button class="delete-btn">Excluir</button>
-                                <a class="tag-btn" href="${etiquetaUrl}" target="_blank">Etiqueta</a>
+                                <button class="tag-btn" onclick="abrirEtiqueta('${item.ID_PATRIMONIO}', '${item.NOME_PATRIMONIO.replace(/'/g, "\\'")}')">Etiqueta</button>
                             </div>
                         </td>
                     `;
