@@ -53,15 +53,16 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             try {
-                // O fetch agora usa um caminho relativo
-                const response = await fetch('/api/login', {
+                // CORREÇÃO: Aponta para a URL completa da sua API no Render
+                const response = await fetch('https://api-patrimonio-ifs.onrender.com/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email, password }),
+                    credentials: 'include' // Importante para enviar cookies de sessão
                 });
                 const result = await response.json();
                 if (response.ok && result.success) {
-                    // Redireciona para a página principal do mesmo servidor
+                    // Redireciona para a página principal do frontend no Netlify
                     window.location.href = '/';
                 } else {
                     statusMessage.textContent = `Erro: ${result.message}`;
