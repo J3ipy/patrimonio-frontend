@@ -420,6 +420,28 @@
     </div>
 
     <script>
+    async function abrirEtiqueta(id, nome) {
+        const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
+        const url = `${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(id)}&nome=${encodeURIComponent(nome)}`;
+        try {
+            const res = await fetch(url, { credentials: 'include' });
+            if (!res.ok) {
+                alert('Você precisa estar logado para ver a etiqueta.');
+                return;
+            }
+            const html = await res.text();
+            const win = window.open();
+            win.document.open();
+            win.document.write(html);
+            win.document.close();
+        } catch (err) {
+            console.error('Erro ao buscar etiqueta:', err);
+            alert('Falha ao gerar etiqueta. Tente novamente.');
+        }
+    }
+    </script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const apiBaseUrl = 'https://api-patrimonio-ifs.onrender.com';
 
@@ -448,25 +470,6 @@
             const modal = document.getElementById('edit-modal');
             const closeBtn = document.querySelector('.close-btn');
             const editForm = document.getElementById('edit-form');
-
-            async function abrirEtiqueta(id, nome) {
-                const url = `${apiBaseUrl}/gerar_etiqueta?id=${encodeURIComponent(id)}&nome=${encodeURIComponent(nome)}`;
-                try {
-                    const res = await fetch(url, { credentials: 'include' });
-                    if (!res.ok) {
-                        alert('Você precisa estar logado para ver a etiqueta.');
-                        return;
-                    }
-                    const html = await res.text();
-                    const win = window.open();
-                    win.document.open();
-                    win.document.write(html);
-                    win.document.close();
-                } catch (err) {
-                    console.error('Erro ao buscar etiqueta:', err);
-                    alert('Falha ao gerar etiqueta. Tente novamente.');
-                }
-            }
 
             function renderTable(items) {
                 tableBody.innerHTML = '';
