@@ -273,16 +273,17 @@
                 statusMessage.className = 'hidden';
 
                 try {
-                    const response = await fetch('https://api-patrimonio-ifs.onrender.com/api/registrar', {
+                    const response = await fetch('https://api-patrimonio-ifs.onrender.com/api/patrimonio/registrar', {
                         method: 'POST',
-                        body: formData 
+                        body: formData,
+                        credentials: 'include' // Essencial para enviar cookies de sessão
                     });
                     const result = await response.json();
 
                     if (result.success) {
                         statusMessage.textContent = result.message;
                         statusMessage.className = 'status-success';
-                        setTimeout(() => window.location.reload(), 2000);
+                        setTimeout(() => window.location.href = '/patrimonios.html', 2000);
                     } else {
                         statusMessage.textContent = 'Erro: ' + result.message;
                         statusMessage.className = 'status-error';
